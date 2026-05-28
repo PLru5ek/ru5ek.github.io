@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinema Canvas | Premium Movie Genres</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'display': ['Playfair Display', 'serif'],
+                        'body': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'cinema': {
+                            'dark': '#0a0a0f',
+                            'darker': '#050508',
+                            'accent': '#c9a227',
+                            'muted': '#1a1a24',
+                            'border': '#2a2a3a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+    
+    <style>
+        /* ============================================
+           CUSTOM CSS - Premium Cinematic Styles
+           ============================================ */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            overflow-x: hidden;
+            cursor: none;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0a0a0f;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #c9a227, #8b6914);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #d4af37, #c9a227);
+        }
+        
+        /* Grainy Texture Overlay */
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+        
+        /* Animated Gradient Blobs */
+        .gradient-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+            transition: background 1.5s ease;
+        }
+        
+        .blob-1 {
+            width: 600px;
+            height: 600px;
+            top: -200px;
+            left: -200px;
+            background: radial-gradient(circle, #6366f1 0%, transparent 70%);
+        }
+        
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            bottom: -150px;
+            right: -150px;
+            background: radial-gradient(circle, #c9a227 0%, transparent 70%);
+        }
+        
+        .blob-3 {
+            width: 400px;
+            height: 400px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, #ef4444 0%, transparent 70%);
+        }
+        
+        /* Custom Cinematic Cursor */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #c9a227;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease, background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            mix-blend-mode: difference;
+        }
+        
+        .custom-cursor.expanded {
+            width: 100px;
+            height: 100px;
+            background: rgba(201, 162, 39, 0.1);
+            backdrop-filter: blur(4px);
+        }
+        
+        .cursor-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #c9a227;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .custom-cursor.expanded .cursor-text {
+            opacity: 1;
+        }
+        
+        .cursor-dot {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: #c9a227;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10001;
+            transform: translate(-50%, -50%);
+        }
+        
+        /* Preloader Styles */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #050508;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+        }
+        
+        .film-strip {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .film-frame {
+            width: 40px;
+            height: 60px;
+            background: #1a1a24;
+            border: 2px solid #2a2a3a;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .film-frame::before,
+        .film-frame::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 6px;
+            background: #0a0a0f;
+            border-radius: 2px;
+        }
+        
+        .film-frame::before { top: 4px; }
+        .film-frame::after { bottom: 4px; }
+        
+        .film-frame-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #c9a227, #8b6914);
+            border-radius: 2px;
+            opacity: 0;
+        }
+        
+        .preloader-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 14px;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            color: #c9a227;
+        }
+        
+        .preloader-counter {
+            font-family: 'Inter', sans-serif;
+            font-size: 72px;
+            font-weight: 200;
+            color: #ffffff;
+            letter-spacing: -2px;
+        }
+        
+        /* Floating Island Navbar */
+        .floating-nav {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            padding: 16px 32px;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(201, 162, 39, 0.2);
+            border-radius: 100px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .floating-nav.scrolled {
+            padding: 12px 24px;
+            background: rgba(10, 10, 15, 0.95);
+            border-color: rgba(201, 162, 39, 0.4);
+        }
+        
+        .nav-link {
+            position: relative;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #888;
+            text-decoration: none;
+            padding: 8px 16px;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #c9a227;
+        }
+        
+        .nav-link.active {
+            color: #ffffff;
+        }
+        
+        .magnetic-area {
+            position: absolute;
+            inset: -20px;
+        }
+        
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, 
+                rgba(5, 5, 8, 0) 0%, 
+                rgba(5, 5, 8, 0.5) 50%,
+                rgba(5, 5, 8, 1) 100%
+            ), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            filter: saturate(0.7);
+        }
+        
+        .masked-heading {
+            position: relative;
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(60px, 12vw, 180px);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+            background: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: brightness(1.2) contrast(1.1);
+        }
+        
+        .hero-subtitle {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            color: #c9a227;
+            margin-top: 24px;
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .scroll-indicator span {
+            font-family: 'Inter', sans-serif;
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #666;
+        }
+        
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(180deg, #c9a227, transparent);
+        }
+        
+        /* Section Styles */
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+        
+        .section-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #c9a227;
+            margin-bottom: 16px;
+        }
+        
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(36px, 6vw, 72px);
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.1;
+        }
+        
+        .section-title .char {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        /* Horizontal Scroll Showcase */
+        .horizontal-section {
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .horizontal-wrapper {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .horizontal-track {
+            display: flex;
+            gap: 40px;
+            padding: 0 10vw;
+            will-change: transform;
+        }
+        
+        /* Genre Cards with 3D Tilt */
+        .genre-card {
+            flex-shrink: 0;
+            width: 400px;
+            height: 550px;
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            background: #1a1a24;
+            border: 1px solid #2a2a3a;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease, box-shadow 0.3s ease;
+            cursor: none;
+        }
+        
+        .genre-card:hover {
+            box-shadow: 0 30px 60px -20px rgba(201, 162, 39, 0.3);
+        }
+        
+        .genre-card-image {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.5s ease;
+        }
+        
+        .genre-card:hover .genre-card-image {
+            transform: scale(1.1);
+        }
+        
+        .genre-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, 
+                transparent 0%,
+                rgba(10, 10, 15, 0.4) 40%,
+                rgba(10, 10, 15, 0.95) 100%
+            );
+        }
+        
+        .genre-card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 40px;
+            transform: translateZ(40px);
+        }
+        
+        .genre-icon {
+            font-size: 32px;
+            margin-bottom: 16px;
+            display: block;
+        }
+        
+        .genre-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        
+        .genre-tagline {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: #888;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        
+        .genre-stats {
+            display: flex;
+            gap: 24px;
+        }
+        
+        .genre-stat {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .genre-stat strong {
+            display: block;
+            font-size: 24px;
+            font-weight: 600;
+            color: #c9a227;
+            margin-bottom: 4px;
+        }
+        
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(26, 26, 36, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+        }
+        
+        /* Featured Section */
+        .featured-section {
+            padding: 160px 0;
+            position: relative;
+        }
+        
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 48px;
+        }
+        
+        .featured-card {
+            position: relative;
+            aspect-ratio: 2/3;
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: none;
+            transform-style: preserve-3d;
+        }
+        
+        .featured-card:first-child {
+            grid-row: span 2;
+        }
+        
+        .featured-card-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .featured-card:hover .featured-card-bg {
+            transform: scale(1.15);
+        }
+        
+        .featured-card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, 
+                transparent 30%,
+                rgba(10, 10, 15, 0.9) 100%
+            );
+            opacity: 0.8;
+            transition: opacity 0.5s ease;
+        }
+        
+        .featured-card:hover .featured-card-overlay {
+            opacity: 1;
+        }
+        
+        .featured-card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 32px;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .featured-card:hover .featured-card-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .featured-card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        
+        .featured-card-meta {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: #c9a227;
+        }
+        
+        /* Quote Section */
+        .quote-section {
+            padding: 200px 48px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .quote-mark {
+            font-family: 'Playfair Display', serif;
+            font-size: 200px;
+            color: rgba(201, 162, 39, 0.1);
+            line-height: 1;
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .quote-text {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(28px, 4vw, 48px);
+            font-weight: 400;
+            font-style: italic;
+            color: #ffffff;
+            max-width: 900px;
+            margin: 0 auto;
+            line-height: 1.5;
+            position: relative;
+        }
+        
+        .quote-author {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: #c9a227;
+            margin-top: 40px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        /* Timeline Section */
+        .timeline-section {
+            padding: 160px 0;
+            position: relative;
+        }
+        
+        .timeline {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 48px;
+        }
+        
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, transparent, #c9a227, transparent);
+            transform: translateX(-50%);
+        }
+        
+        .timeline-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 80px;
+        }
+        
+        .timeline-item:nth-child(odd) {
+            flex-direction: row-reverse;
+        }
+        
+        .timeline-content {
+            width: calc(50% - 60px);
+            padding: 40px;
+            background: rgba(26, 26, 36, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+        
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: #c9a227;
+            border-radius: 50%;
+            border: 4px solid #0a0a0f;
+            z-index: 1;
+        }
+        
+        .timeline-year {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: #c9a227;
+            margin-bottom: 8px;
+        }
+        
+        .timeline-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+        
+        .timeline-desc {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: #888;
+            line-height: 1.7;
+        }
+        
+        /* Footer */
+        .footer {
+            padding: 80px 48px;
+            border-top: 1px solid #2a2a3a;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 16px;
+        }
+        
+        .footer-text {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        /* Utility Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        
+        .parallax-layer {
+            will-change: transform;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .featured-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .genre-card {
+                width: 350px;
+                height: 480px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .floating-nav {
+                padding: 12px 20px;
+            }
+            
+            .nav-link {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+            
+            .featured-grid {
+                grid-template-columns: 1fr;
+                padding: 0 24px;
+            }
+            
+            .genre-card {
+                width: 300px;
+                height: 420px;
+            }
+            
+            .timeline-content {
+                width: calc(50% - 40px);
+                padding: 24px;
+            }
+            
+            .custom-cursor,
+            .cursor-dot {
+                display: none;
+            }
+            
+            body {
+                cursor: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Grain Overlay -->
+    <div class="grain-overlay"></div>
+    
+    <!-- Animated Gradient Blobs -->
+    <div class="gradient-blob blob-1"></div>
+    <div class="gradient-blob blob-2"></div>
+    <div class="gradient-blob blob-3"></div>
+    
+    <!-- Custom Cursor -->
+    <div class="custom-cursor">
+        <span class="cursor-text">Explore</span>
+    </div>
+    <div class="cursor-dot"></div>
+    
+    <!-- Preloader -->
+    <div class="preloader">
+        <div class="film-strip">
+            <div class="film-frame"><div class="film-frame-inner"></div></div>
+            <div class="film-frame"><div class="film-frame-inner"></div></div>
+            <div class="film-frame"><div class="film-frame-inner"></div></div>
+            <div class="film-frame"><div class="film-frame-inner"></div></div>
+            <div class="film-frame"><div class="film-frame-inner"></div></div>
+        </div>
+        <div class="preloader-counter">0</div>
+        <div class="preloader-text">Loading Cinema</div>
+    </div>
+    
+    <!-- Floating Navigation -->
+    <nav class="floating-nav">
+        <div class="flex items-center gap-2">
+            <a href="#hero" class="nav-link active" data-magnetic>
+                <span class="magnetic-area"></span>
+                Home
+            </a>
+            <a href="#genres" class="nav-link" data-magnetic>
+                <span class="magnetic-area"></span>
+                Genres
+            </a>
+            <a href="#featured" class="nav-link" data-magnetic>
+                <span class="magnetic-area"></span>
+                Featured
+            </a>
+            <a href="#timeline" class="nav-link" data-magnetic>
+                <span class="magnetic-area"></span>
+                History
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="hero-bg"></div>
+        <div class="relative z-10 text-center">
+            <h1 class="masked-heading">Cinema</h1>
+            <p class="hero-subtitle">
+                <span class="char">A</span>
+                <span class="char">n</span>
+                <span class="char"> </span>
+                <span class="char">I</span>
+                <span class="char">m</span>
+                <span class="char">m</span>
+                <span class="char">e</span>
+                <span class="char">r</span>
+                <span class="char">s</span>
+                <span class="char">i</span>
+                <span class="char">v</span>
+                <span class="char">e</span>
+                <span class="char"> </span>
+                <span class="char">J</span>
+                <span class="char">o</span>
+                <span class="char">u</span>
+                <span class="char">r</span>
+                <span class="char">n</span>
+                <span class="char">e</span>
+                <span class="char">y</span>
+            </p>
+        </div>
+        <div class="scroll-indicator">
+            <span>Scroll to Explore</span>
+            <div class="scroll-line"></div>
+        </div>
+    </section>
+    
+    <!-- Horizontal Scroll Genre Showcase -->
+    <section id="genres" class="py-40">
+        <div class="section-header px-12">
+            <p class="section-label">Discover</p>
+            <h2 class="section-title">
+                <span class="char">G</span><span class="char">e</span><span class="char">n</span><span class="char">r</span><span class="char">e</span><span class="char">s</span>
+            </h2>
+        </div>
+        
+        <div class="horizontal-section">
+            <div class="horizontal-wrapper">
+                <div class="horizontal-track">
+                    <!-- Sci-Fi -->
+                    <article class="genre-card" data-genre="scifi" data-color="#6366f1">
+                        <div class="genre-card-image" style="background-image: url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=800&q=80')"></div>
+                        <div class="genre-card-overlay"></div>
+                        <div class="genre-card-content">
+                            <span class="genre-icon">🚀</span>
+                            <h3 class="genre-name">Science Fiction</h3>
+                            <p class="genre-tagline">Where imagination meets the infinite possibilities of tomorrow</p>
+                            <div class="genre-stats">
+                                <div class="genre-stat">
+                                    <strong>2.4K</strong>
+                                    Films
+                                </div>
+                                <div class="genre-stat">
+                                    <strong>1927</strong>
+                                    Since
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- Horror -->
+                    <article class="genre-card" data-genre="horror" data-color="#dc2626">
+                        <div class="genre-card-image" style="background-image: url('https://images.unsplash.com/photo-1509248961895-b4a29ba7f77a?w=800&q=80')"></div>
+                        <div class="genre-card-overlay"></div>
+                        <div class="genre-card-content">
+                            <span class="genre-icon">👻</span>
+                            <h3 class="genre-name">Horror</h3>
+                            <p class="genre-tagline">Confronting our deepest fears in the darkness of the theater</p>
+                            <div class="genre-stats">
+                                <div class="genre-stat">
+                                    <strong>3.1K</strong>
+                                    Films
+                                </div>
+                                <div class="genre-stat">
+                                    <strong>1896</strong>
+                                    Since
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- Drama -->
+                    <article class="genre-card" data-genre="drama" data-color="#eab308">
+                        <div class="genre-card-image" style="background-image: url('https://images.unsplash.com/photo-1485846234645-a62644f84728?w=800&q=80')"></div>
+                        <div class="genre-card-overlay"></div>
+                        <div class="genre-card-content">
+                            <span class="genre-icon">🎭</span>
+                            <h3 class="genre-name">Drama</h3>
+                            <p class="genre-tagline">The art of human emotion captured in its purest form</p>
+                            <div class="genre-stats">
+                                <div class="genre-stat">
+                                    <strong>8.7K</strong>
+                                    Films
+                                </div>
+                                <div class="genre-stat">
+                                    <strong>1895</strong>
+                                    Since
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- Action -->
+                    <article class="genre-card" data-genre="action" data-color="#f97316">
+                        <div class="genre-card-image" style="background-image: url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&q=80')"></div>
+                        <div class="genre-card-overlay"></div>
+                        <div class="genre-card-content">
+                            <span class="genre-icon">💥</span>
+                            <h3 class="genre-name">Action</h3>
+                            <p class="genre-tagline">Adrenaline-fueled spectacles that keep you on the edge</p>
+                            <div class="genre-stats">
+                                <div class="genre-stat">
+                                    <strong>4.2K</strong>
+                                    Films
+                                </div>
+                                <div class="genre-stat">
+                                    <strong>1920</strong>
+                                    Since
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- Romance -->
+                    <article class="genre-card" data-genre="romance" data-color="#ec4899">
+                        <div class="genre-card-image" style="background-image: url('https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=800&q=80')"></div>
+                        <div class="genre-card-overlay"></div>
+                        <div class="genre-card-content">
+                            <span class="genre-icon">💕</span>
+                            <h3 class="genre-name">Romance</h3>
+                            <p class="genre-tagline">Love stories that transcend time and touch the heart</p>
+                            <div class="genre-stats">
+                                <div class="genre-stat">
+                                    <strong>5.8K</strong>
+                                    Films
+                                </div>
+                                <div class="genre-stat">
+                                    <strong>1896</strong>
+                                    Since
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- Noir -->
+                    <article class="genre-card" data-genre="noir" data-color="#64748b">
+                        <div class="genre-card-image" style="background-image: url('https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800&q=80')"></div>
+                        <div class="genre-card-overlay"></div>
+                        <div class="genre-card-content">
+                            <span class="genre-icon">🎩</span>
+                            <h3 class="genre-name">Film Noir</h3>
+                            <p class="genre-tagline">Shadows, secrets, and the moral ambiguity of humanity</p>
+                            <div class="genre-stats">
+                                <div class="genre-stat">
+                                    <strong>1.2K</strong>
+                                    Films
+                                </div>
+                                <div class="genre-stat">
+                                    <strong>1941</strong>
+                                    Since
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                    
+                    <!-- Western -->
+                    <article class="genre-card" data-genre="western" data-color="#a16207">
+                        <div class="genre-card-image" style="background-image: url('https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&q=80')"></div>
+                        <div class="genre-card-overlay"></div>
+                        <div class="genre-card-content">
+                            <span class="genre-icon">🤠</span>
+                            <h3 class="genre-name">Western</h3>
+                            <p class="genre-tagline">The untamed frontier where legends are born</p>
+                            <div class="genre-stats">
+                                <div class="genre-stat">
+                                    <strong>2.8K</strong>
+                                    Films
+                                </div>
+                                <div class="genre-stat">
+                                    <strong>1903</strong>
+                                    Since
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Quote Section -->
+    <section class="quote-section">
+        <span class="quote-mark">"</span>
+        <blockquote class="quote-text reveal">
+            Cinema is a matter of what's in the frame and what's out.
+        </blockquote>
+        <cite class="quote-author reveal">— Martin Scorsese</cite>
+    </section>
+    
+    <!-- Featured Films Grid -->
+    <section id="featured" class="featured-section">
+        <div class="section-header">
+            <p class="section-label">Masterpieces</p>
+            <h2 class="section-title">
+                <span class="char">F</span><span class="char">e</span><span class="char">a</span><span class="char">t</span><span class="char">u</span><span class="char">r</span><span class="char">e</span><span class="char">d</span>
+            </h2>
+        </div>
+        
+        <div class="featured-grid">
+            <article class="featured-card">
+                <div class="featured-card-bg" style="background-image: url('https://images.unsplash.com/photo-1440404653325-ab127d49abc1?w=800&q=80')"></div>
+                <div class="featured-card-overlay"></div>
+                <div class="featured-card-content">
+                    <h3 class="featured-card-title">Blade Runner 2049</h3>
+                    <p class="featured-card-meta">Sci-Fi / Neo-Noir</p>
+                </div>
+            </article>
+            
+            <article class="featured-card">
+                <div class="featured-card-bg" style="background-image: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80')"></div>
+                <div class="featured-card-overlay"></div>
+                <div class="featured-card-content">
+                    <h3 class="featured-card-title">The Godfather</h3>
+                    <p class="featured-card-meta">Crime / Drama</p>
+                </div>
+            </article>
+            
+            <article class="featured-card">
+                <div class="featured-card-bg" style="background-image: url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800&q=80')"></div>
+                <div class="featured-card-overlay"></div>
+                <div class="featured-card-content">
+                    <h3 class="featured-card-title">Interstellar</h3>
+                    <p class="featured-card-meta">Sci-Fi / Adventure</p>
+                </div>
+            </article>
+            
+            <article class="featured-card">
+                <div class="featured-card-bg" style="background-image: url('https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=800&q=80')"></div>
+                <div class="featured-card-overlay"></div>
+                <div class="featured-card-content">
+                    <h3 class="featured-card-title">Pulp Fiction</h3>
+                    <p class="featured-card-meta">Crime / Drama</p>
+                </div>
+            </article>
+            
+            <article class="featured-card">
+                <div class="featured-card-bg" style="background-image: url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800&q=80')"></div>
+                <div class="featured-card-overlay"></div>
+                <div class="featured-card-content">
+                    <h3 class="featured-card-title">The Shining</h3>
+                    <p class="featured-card-meta">Horror / Psychological</p>
+                </div>
+            </article>
+        </div>
+    </section>
+    
+    <!-- Cinema History Timeline -->
+    <section id="timeline" class="timeline-section">
+        <div class="section-header">
+            <p class="section-label">Evolution</p>
+            <h2 class="section-title">
+                <span class="char">H</span><span class="char">i</span><span class="char">s</span><span class="char">t</span><span class="char">o</span><span class="char">r</span><span class="char">y</span>
+            </h2>
+        </div>
+        
+        <div class="timeline">
+            <div class="timeline-line"></div>
+            
+            <div class="timeline-item reveal">
+                <div class="timeline-content">
+                    <span class="timeline-year">1895</span>
+                    <h3 class="timeline-title">Birth of Cinema</h3>
+                    <p class="timeline-desc">The Lumière brothers premiere their first films in Paris, marking the dawn of motion pictures and forever changing human storytelling.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+            
+            <div class="timeline-item reveal">
+                <div class="timeline-content">
+                    <span class="timeline-year">1927</span>
+                    <h3 class="timeline-title">The Talkies Era</h3>
+                    <p class="timeline-desc">The Jazz Singer revolutionizes cinema with synchronized dialogue, ending the silent film era and opening new narrative possibilities.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+            
+            <div class="timeline-item reveal">
+                <div class="timeline-content">
+                    <span class="timeline-year">1939</span>
+                    <h3 class="timeline-title">Golden Age Begins</h3>
+                    <p class="timeline-desc">Hollywood's Golden Age flourishes with classics like Gone with the Wind and The Wizard of Oz, establishing cinema as the dominant art form.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+            
+            <div class="timeline-item reveal">
+                <div class="timeline-content">
+                    <span class="timeline-year">1977</span>
+                    <h3 class="timeline-title">Blockbuster Revolution</h3>
+                    <p class="timeline-desc">Star Wars transforms the industry, creating the modern blockbuster phenomenon and proving the power of cinematic universes.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+            
+            <div class="timeline-item reveal">
+                <div class="timeline-content">
+                    <span class="timeline-year">2009</span>
+                    <h3 class="timeline-title">Digital Renaissance</h3>
+                    <p class="timeline-desc">Avatar ushers in the digital 3D era, pushing technological boundaries and redefining what's possible in visual storytelling.</p>
+                </div>
+                <div class="timeline-dot"></div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-logo">Cinema Canvas</div>
+        <p class="footer-text">A premium exploration of cinematic storytelling</p>
+    </footer>
+
+    <!-- GSAP Animation Script -->
+    <script>
+        // ============================================
+        // GSAP Animation Logic - Cinema Canvas
+        // ============================================
+        
+        gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+        
+        // ----- Preloader Animation -----
+        const preloader = document.querySelector('.preloader');
+        const preloaderCounter = document.querySelector('.preloader-counter');
+        const filmFrames = document.querySelectorAll('.film-frame-inner');
+        
+        let progress = { value: 0 };
+        
+        // Film strip animation
+        gsap.to(filmFrames, {
+            opacity: 1,
+            duration: 0.3,
+            stagger: {
+                each: 0.15,
+                repeat: -1,
+                yoyo: true
+            }
+        });
+        
+        // Counter animation
+        gsap.to(progress, {
+            value: 100,
+            duration: 2.5,
+            ease: 'power2.inOut',
+            onUpdate: () => {
+                preloaderCounter.textContent = Math.round(progress.value);
+            },
+            onComplete: () => {
+                gsap.to(preloader, {
+                    yPercent: -100,
+                    duration: 1,
+                    ease: 'power4.inOut',
+                    onComplete: () => {
+                        preloader.style.display = 'none';
+                        initAnimations();
+                    }
+                });
+            }
+        });
+        
+        // ----- Custom Cursor -----
+        const cursor = document.querySelector('.custom-cursor');
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorText = document.querySelector('.cursor-text');
+        const interactiveElements = document.querySelectorAll('.genre-card, .featured-card, .nav-link, a, button');
+        
+        let mouseX = 0, mouseY = 0;
+        let cursorX = 0, cursorY = 0;
+        let dotX = 0, dotY = 0;
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+        
+        // Smooth cursor follow
+        function animateCursor() {
+            cursorX += (mouseX - cursorX) * 0.15;
+            cursorY += (mouseY - cursorY) * 0.15;
+            dotX += (mouseX - dotX) * 0.35;
+            dotY += (mouseY - dotY) * 0.35;
+            
+            cursor.style.left = cursorX + 'px';
+            cursor.style.top = cursorY + 'px';
+            cursorDot.style.left = dotX + 'px';
+            cursorDot.style.top = dotY + 'px';
+            
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+        
+        // Cursor hover states
+        interactiveElements.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.classList.add('expanded');
+                if (el.classList.contains('genre-card') || el.classList.contains('featured-card')) {
+                    cursorText.textContent = 'View';
+                } else {
+                    cursorText.textContent = 'Click';
+                }
+            });
+            el.addEventListener('mouseleave', () => {
+                cursor.classList.remove('expanded');
+                cursorText.textContent = 'Explore';
+            });
+        });
+        
+        // ----- Magnetic Hover Effect -----
+        const magneticLinks = document.querySelectorAll('[data-magnetic]');
+        
+        magneticLinks.forEach(link => {
+            link.addEventListener('mousemove', (e) => {
+                const rect = link.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                
+                gsap.to(link, {
+                    x: x * 0.3,
+                    y: y * 0.3,
+                    duration: 0.3,
+                    ease: 'power2.out'
+                });
+            });
+            
+            link.addEventListener('mouseleave', () => {
+                gsap.to(link, {
+                    x: 0,
+                    y: 0,
+                    duration: 0.5,
+                    ease: 'elastic.out(1, 0.5)'
+                });
+            });
+        });
+        
+        // ----- Floating Nav Scroll Effect -----
+        const floatingNav = document.querySelector('.floating-nav');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                floatingNav.classList.add('scrolled');
+            } else {
+                floatingNav.classList.remove('scrolled');
+            }
+        });
+        
+        // ----- 3D Tilt Effect for Genre Cards -----
+        const genreCards = document.querySelectorAll('.genre-card');
+        
+        genreCards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 15;
+                const rotateY = (centerX - x) / 15;
+                
+                gsap.to(card, {
+                    rotateX: rotateX,
+                    rotateY: rotateY,
+                    duration: 0.3,
+                    ease: 'power2.out',
+                    transformPerspective: 1000
+                });
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                gsap.to(card, {
+                    rotateX: 0,
+                    rotateY: 0,
+                    duration: 0.5,
+                    ease: 'power2.out'
+                });
+            });
+            
+            // Update blob colors on hover
+            card.addEventListener('mouseenter', () => {
+                const color = card.dataset.color;
+                gsap.to('.blob-1', { background: `radial-gradient(circle, ${color} 0%, transparent 70%)`, duration: 1 });
+                gsap.to('.blob-3', { background: `radial-gradient(circle, ${color} 0%, transparent 70%)`, duration: 1.2 });
+            });
+        });
+        
+        // ----- 3D Tilt for Featured Cards -----
+        const featuredCards = document.querySelectorAll('.featured-card');
+        
+        featuredCards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                
+                gsap.to(card, {
+                    rotateX: rotateX,
+                    rotateY: rotateY,
+                    duration: 0.3,
+                    ease: 'power2.out',
+                    transformPerspective: 1000
+                });
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                gsap.to(card, {
+                    rotateX: 0,
+                    rotateY: 0,
+                    duration: 0.5,
+                    ease: 'power2.out'
+                });
+            });
+        });
+        
+        // ----- Main Animations Init -----
+        function initAnimations() {
+            // Hero masked heading background movement
+            const maskedHeading = document.querySelector('.masked-heading');
+            
+            document.addEventListener('mousemove', (e) => {
+                const x = (e.clientX / window.innerWidth - 0.5) * 30;
+                const y = (e.clientY / window.innerHeight - 0.5) * 30;
+                
+                gsap.to(maskedHeading, {
+                    backgroundPosition: `${50 + x}% ${50 + y}%`,
+                    duration: 0.5
+                });
+            });
+            
+            // Hero subtitle letter animation
+            gsap.from('.hero-subtitle .char', {
+                opacity: 0,
+                y: 20,
+                duration: 0.6,
+                stagger: 0.03,
+                ease: 'power2.out',
+                delay: 0.3
+            });
+            
+            // Scroll indicator animation
+            gsap.to('.scroll-line', {
+                scaleY: 0,
+                transformOrigin: 'top',
+                duration: 1,
+                repeat: -1,
+                yoyo: true,
+                ease: 'power2.inOut'
+            });
+            
+            // Section title character animations
+            document.querySelectorAll('.section-title').forEach(title => {
+                const chars = title.querySelectorAll('.char');
+                
+                gsap.to(chars, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.6,
+                    stagger: 0.04,
+                    ease: 'power3.out',
+                    scrollTrigger: {
+                        trigger: title,
+                        start: 'top 80%',
+                        toggleActions: 'play none none none'
+                    }
+                });
+            });
+            
+            // Reveal animations
+            gsap.utils.toArray('.reveal').forEach(el => {
+                gsap.to(el, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 1,
+                    ease: 'power3.out',
+                    scrollTrigger: {
+                        trigger: el,
+                        start: 'top 85%',
+                        toggleActions: 'play none none none'
+                    }
+                });
+            });
+            
+            // Horizontal scroll for genre cards
+            const horizontalTrack = document.querySelector('.horizontal-track');
+            const horizontalSection = document.querySelector('.horizontal-section');
+            
+            if (horizontalTrack && horizontalSection) {
+                const trackWidth = horizontalTrack.scrollWidth;
+                const viewportWidth = window.innerWidth;
+                
+                gsap.to(horizontalTrack, {
+                    x: () => -(trackWidth - viewportWidth + 100),
+                    ease: 'none',
+                    scrollTrigger: {
+                        trigger: horizontalSection,
+                        start: 'top top',
+                        end: () => `+=${trackWidth}`,
+                        scrub: 1,
+                        pin: true,
+                        anticipatePin: 1
+                    }
+                });
+                
+                // Parallax effect on genre card images
+                genreCards.forEach((card, i) => {
+                    const image = card.querySelector('.genre-card-image');
+                    gsap.to(image, {
+                        x: -50,
+                        ease: 'none',
+                        scrollTrigger: {
+                            trigger: horizontalSection,
+                            start: 'top top',
+                            end: () => `+=${trackWidth}`,
+                            scrub: 1
+                        }
+                    });
+                });
+            }
+            
+            // Featured cards stagger reveal
+            gsap.from('.featured-card', {
+                opacity: 0,
+                y: 60,
+                scale: 0.95,
+                duration: 0.8,
+                stagger: 0.15,
+                ease: 'power3.out',
+                scrollTrigger: {
+                    trigger: '.featured-grid',
+                    start: 'top 75%',
+                    toggleActions: 'play none none none'
+                }
+            });
+            
+            // Timeline items animation
+            gsap.utils.toArray('.timeline-item').forEach((item, i) => {
+                gsap.from(item.querySelector('.timeline-content'), {
+                    opacity: 0,
+                    x: i % 2 === 0 ? -50 : 50,
+                    duration: 0.8,
+                    ease: 'power3.out',
+                    scrollTrigger: {
+                        trigger: item,
+                        start: 'top 80%',
+                        toggleActions: 'play none none none'
+                    }
+                });
+                
+                gsap.from(item.querySelector('.timeline-dot'), {
+                    scale: 0,
+                    duration: 0.5,
+                    ease: 'back.out(2)',
+                    scrollTrigger: {
+                        trigger: item,
+                        start: 'top 80%',
+                        toggleActions: 'play none none none'
+                    }
+                });
+            });
+            
+            // Blob floating animation
+            gsap.to('.blob-1', {
+                x: 100,
+                y: 50,
+                duration: 20,
+                repeat: -1,
+                yoyo: true,
+                ease: 'sine.inOut'
+            });
+            
+            gsap.to('.blob-2', {
+                x: -80,
+                y: -60,
+                duration: 25,
+                repeat: -1,
+                yoyo: true,
+                ease: 'sine.inOut'
+            });
+            
+            gsap.to('.blob-3', {
+                x: 60,
+                y: -40,
+                duration: 18,
+                repeat: -1,
+                yoyo: true,
+                ease: 'sine.inOut'
+            });
+        }
+        
+        // ----- Smooth Scroll Navigation -----
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = link.getAttribute('href');
+                
+                gsap.to(window, {
+                    scrollTo: { y: target, offsetY: 80 },
+                    duration: 1.2,
+                    ease: 'power3.inOut'
+                });
+                
+                // Update active state
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+        
+        // ----- Update Active Nav on Scroll -----
+        const sections = ['#hero', '#genres', '#featured', '#timeline'];
+        
+        sections.forEach(section => {
+            const el = document.querySelector(section);
+            if (el) {
+                ScrollTrigger.create({
+                    trigger: el,
+                    start: 'top center',
+                    end: 'bottom center',
+                    onEnter: () => updateActiveNav(section),
+                    onEnterBack: () => updateActiveNav(section)
+                });
+            }
+        });
+        
+        function updateActiveNav(section) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === section) {
+                    link.classList.add('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
